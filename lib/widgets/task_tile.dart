@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../bloc/task_bloc.dart';
 import '../models/task.dart';
 import 'add_edit_task.dart';
 import 'popup_menu.dart';
@@ -65,17 +67,62 @@ class TaskTile extends StatelessWidget {
         Row(
           children: [
             Checkbox(
-                value: task.isDone,
-                onChanged: task.isDeleted! ? null : (value) {}),
+              value: task.isDone,
+              onChanged: task.isDeleted!
+                  ? null
+                  : (value) {
+                      
+                      print(value);
+                      final completeTask = Task(
+                          id: task.id,
+                          title: task.title,
+                          description: task.description,
+                          createdAt: task.createdAt,
+                          isFavorite: task.isFavorite,
+                          isDone: value);
+                      context
+                          .read<TaskBloc>()
+                          .add(CompleteTask(task: completeTask));
+                    },
+            ),
             PopupMenu(
               task: task,
               editCallback: () {
                 Navigator.pop(context);
                 _editTask(context);
               },
-              likeOrDislikeCallback: () {},
-              cancelOrDeleteCallback: () {},
-              restoreTaskCallback: () => {},
+              likeOrDislikeCallback: () {
+                final favoriteTask = Task(
+                    id: task.id,
+                    title: task.title,
+                    description: task.description,
+                    createdAt: task.createdAt,
+                    isFavorite: !task.isFavorite!,
+                    isDone: task.isDone);
+                context.read<TaskBloc>().add(AddToFavorite(task: favoriteTask));
+              },
+              cancelOrDeleteCallback: () {
+                final deleteTask = Task(
+                    id: task.id,
+                    title: task.title,
+                    description: task.description,
+                    createdAt: task.createdAt,
+                    isFavorite: task.isFavorite,
+                    isDone: task.isDone,
+                    isDeleted: !task.isDeleted!);
+                context.read<TaskBloc>().add(DeleteTask(task: deleteTask));
+              },
+              restoreTaskCallback: () {
+                final restoreTask = Task(
+                    id: task.id,
+                    title: task.title,
+                    description: task.description,
+                    createdAt: task.createdAt,
+                    isFavorite: task.isFavorite,
+                    isDone: task.isDone,
+                    isDeleted: !task.isDeleted!);
+                context.read<TaskBloc>().add(RestoreTask(task: restoreTask));
+              },
             ),
           ],
         ),

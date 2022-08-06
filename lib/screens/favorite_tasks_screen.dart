@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/task_bloc.dart';
+import '../bloc/task_state.dart';
 import '../models/task.dart';
 import '../test_data.dart';
 import '../widgets/tasks_list.dart';
@@ -17,11 +19,21 @@ class FavoriteTasksScreen extends StatelessWidget {
         children: [
           Center(
             child: Chip(
-              label: Text('${tasksList.length} Tasks'),
+               label: BlocBuilder<TaskBloc, TaskState>(
+                builder: (context, state) {
+                  final favoriteTasks = state.favoriteTasks!;
+                  return Text('${favoriteTasks.length} Tasks');
+                },
+              ),
             ),
           ),
           const SizedBox(height: 10),
-          TasksList(tasksList: tasksList),
+          BlocBuilder<TaskBloc, TaskState>(
+            builder: (context, state) {
+              final tasks = state.favoriteTasks!;
+              return TasksList(tasksList: tasks);
+            },
+          ),
         ],
       ),
     );

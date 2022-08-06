@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/task_bloc.dart';
+import '../bloc/task_state.dart';
+import '../cubit/theme_cubit.dart';
+import '../cubit/theme_state.dart';
 import '../screens/recycle_bin_screen.dart';
 import '../screens/tabs_screen.dart';
 import '../test_data.dart';
@@ -8,10 +12,8 @@ class TasksDrawer extends StatelessWidget {
   const TasksDrawer({Key? key}) : super(key: key);
 
   _switchToDarkTheme(BuildContext context, bool isDarkTheme) {
-    if (isDarkTheme) {
-    } else {}
+    context.read<ThemeCubit>().toggleTheme(isDarkTheme);
   }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -29,8 +31,14 @@ class TasksDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.folder_special),
               title: const Text('My Tasks'),
-              trailing: Text(
-                '${TestData.pendingTasks.length} | ${TestData.completedTasks.length}',
+              trailing: BlocBuilder<TaskBloc, TaskState>(
+                builder: (context, state) {
+                  final pendingTasks = state.pendingTasks!;
+                  final completedTasks = state.completedTasks!;
+                  return Text(
+                    '${pendingTasks.length} | ${completedTasks.length}',
+                  );
+                },
               ),
               onTap: () => Navigator.pushReplacementNamed(
                 context,
@@ -41,7 +49,12 @@ class TasksDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.delete),
               title: const Text('Recycle Bin'),
-              trailing: Text('${TestData.removedTasks.length}'),
+              trailing: BlocBuilder<TaskBloc, TaskState>(
+                builder: (context, state) {
+                  final removedTasks = state.removedTasks!;
+                  return Text('${removedTasks.length}');
+                },
+              ),
               onTap: () => Navigator.pushReplacementNamed(
                 context,
                 RecycleBinScreen.path,
@@ -49,14 +62,17 @@ class TasksDrawer extends StatelessWidget {
             ),
             const Divider(),
             const Expanded(child: SizedBox()),
-            ListTile(
-              leading: Switch(
-                value: TestData.isDarkTheme,
-                onChanged: (newValue) => _switchToDarkTheme(context, newValue),
-              ),
-              title: const Text('Switch to Dark Theme'),
-              onTap: () => _switchToDarkTheme(context, !TestData.isDarkTheme),
-            ),
+            BlocBuilder<ThemeCubit, ThemeState>(builder: (context, state) {
+              return ListTile(
+                leading: Switch(
+                  value: state.isDarkTheme!,
+                  onChanged: (newValue) =>
+                      _switchToDarkTheme(context, newValue),
+                ),
+                title: const Text('Switch to Dark Theme'),
+                onTap: () => _switchToDarkTheme(context, !state.isDarkTheme!),
+              );
+            }),
             const SizedBox(height: 10),
           ],
         ),
